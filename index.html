@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML Cleaner</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 10px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    button {
+      margin: 10px 5px 20px 0;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>HTML Cleaner</h2>
+<p>
+  Removes: <code>div</code>, <code>span</code>, <code>script</code>, <code>style</code>, <code>&nbsp;</code>, and empty paragraphs like <code>&lt;p&gt;&nbsp;&lt;/p&gt;</code>.<br>
+  Keeps <code>&lt;a&gt;</code> attributes except <code>class</code>, removes all attributes from other tags.<br>
+  Places each HTML tag on its own line for easy copying.
+</p>
+
+<textarea id="inputHtml" placeholder="Paste your HTML here..."></textarea>
+<br>
+<button onclick="cleanHtml()">Clean HTML</button>
+
+<h3>Cleaned Output</h3>
+<textarea id="outputHtml" readonly placeholder="Cleaned HTML will appear here..."></textarea>
+<br>
+<button onclick="copyOutput()">Copy to Clipboard</button>
+
+<script>
+  function cleanHtml() {
+    const input = document.getElementById('inputHtml').value;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(input, 'text/html');
+
+    // Remove script and style tags
+    doc.querySelectorAll('script, style').forEach(el => el.remove());
+
+    // Remove empty <p> tags
+    doc.querySelectorAll('p').forEach(p => {
+      const content = p.innerHTML.replace(/&nbsp;|\s|\u00a0/g, '');
+      if (content === '') p.remove();
+    });
+
+    // Remove &nbsp; from text nodes
+    function removeNbsp(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        node.textContent = node.textContent.replace(/\u00a0|&nbsp;/g, ' ');
+      }
+      node.childNodes.forEach(removeNbsp);
+    }
+
+    // Clean attributes
+    function cleanAttributes(node) {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        if (node.tagName.toLowerCase() === 'a') {
+          const keep = {};
+          for (let attr of node.attributes) {
+            if (attr.name !== 'class') {
+              keep[attr.name] = attr.value;
+            }
+          }
+          while (node.attributes.length > 0) {
+            node.removeAttribute(node.attributes[0].name);
+          }
+          for (let name in keep) {
+            node.setAttribute(name, keep[name]);
+          }
+        } else {
+          while (node.attributes.length > 0) {
+            node.removeAttribute(node.attributes[0].name);
+          }
+        }
+      }
+      node.childNodes.forEach(cleanAttributes);
+    }
+
+    // Unwrap tags like div and span
+    function unwrapTags(node, tagNames) {
+      tagNames.forEach(tag => {
+        node.querySelectorAll(tag).forEach(el => {
+          const parent = el.parentNode;
+          if (el.nextSibling && el.nextSibling.nodeType === Node.TEXT_NODE) {
+            el.insertAdjacentText('beforeend', ' ');
+          }
+          while (el.firstChild) {
+            parent.insertBefore(el.firstChild, el);
+          }
+          parent.insertBefore(document.createTextNode(' '), el);
+          parent.removeChild(el);
+        });
+      });
+    }
+
+    // Format output to place each tag on its own line
+    function formatOutput(html) {
+      return html
+        .replace(/&nbsp;/g, '')        // remove remaining encoded &nbsp;
+        .replace(/></g, '>\n<')        // separate tags
+        .replace(/>\s+</g, '>\n<')     // handle spacing
+        .replace(/\s{2,}/g, ' ')       // compress extra spaces
+        .trim();
+    }
+
+    cleanAttributes(doc.body);
+    removeNbsp(doc.body);
+    unwrapTags(doc.body, ['div', 'span']);
+
+    const rawHtml = doc.body.innerHTML;
+    const formatted = formatOutput(rawHtml);
+    document.getElementById('outputHtml').value = formatted;
+  }
+
+  function copyOutput() {
+    const output = document.getElementById('outputHtml');
+    output.select();
+    output.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("Cleaned HTML copied to clipboard!");
+  }
+</script>
+
+</body>
+</html>
