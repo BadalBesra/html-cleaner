@@ -136,6 +136,22 @@
     document.execCommand("copy");
     alert("Cleaned HTML copied to clipboard!");
   }
+
+  function removeBoldFromHeadings(doc) {
+  const headingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+  headingTags.forEach(tag => {
+    doc.querySelectorAll(tag).forEach(heading => {
+      heading.querySelectorAll('b, strong').forEach(boldTag => {
+        // Replace <b>/<strong> with its inner content
+        const parent = boldTag.parentNode;
+        while (boldTag.firstChild) {
+          parent.insertBefore(boldTag.firstChild, boldTag);
+        }
+        parent.removeChild(boldTag);
+      });
+    });
+  });
+}
 </script>
 
 </body>
