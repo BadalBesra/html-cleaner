@@ -123,6 +123,7 @@
     cleanAttributes(doc.body);
     removeNbsp(doc.body);
     unwrapTags(doc.body, ['div', 'span']);
+    removeBoldFromHeadings(doc);
 
     const rawHtml = doc.body.innerHTML;
     const formatted = formatOutput(rawHtml);
