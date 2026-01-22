@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        .formats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .format-btn {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .format-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .format-btn.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .status-message {
+            display: none;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .status-message.error {
+            background: #ffe0e0;
+            color: #d32f2f;
+            display: block;
+        }
+
+        .status-message.success {
+            background: #e0f2e0;
+            color: #388e3c;
+            display: block;
+        }
+
+        .status-message.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            display: block;
+        }
+
+        .disclaimer {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 YouTube Downloader</h1>
+        <p class="subtitle">Download videos in your preferred resolution</p>
+
+        <div class="info-box">
+            <strong>ℹ️ Note:</strong> This is a demo interface. To actually download videos, you would need to integrate with a backend service like yt-dlp or similar API.
+        </div>
+
+        <form id="downloadForm">
+            <div class="form-group">
+                <label for="videoUrl">YouTube URL</label>
+                <input 
+                    type="text" 
+                    id="videoUrl" 
+                    placeholder="https://www.youtube.com/watch?v=..." 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Select Quality</label>
+                <div class="formats-grid">
+                    <button type="button" class="format-btn selected" data-quality="1080p">
+                        🎥 1080p (Full HD)
+                    </button>
+                    <button type="button" class="format-btn" data-quality="720p">
+                        🎥 720p (HD)
+                    </button>
+                    <button type="button" class="format-btn" data-quality="480p">
+                        📱 480p (SD)
+                    </button>
+                    <button type="button" class="format-btn" data-quality="360p">
+                        📱 360p (Mobile)
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="format">File Format</label>
+                <select id="format">
+                    <option value="mp4">MP4 (Video + Audio)</option>
+                    <option value="webm">WebM (Video + Audio)</option>
+                    <option value="audio">MP3 (Audio Only)</option>
+                </select>
+            </div>
+
+            <div id="statusMessage" class="status-message"></div>
+
+            <button type="submit" class="btn">Download Video</button>
+        </form>
+
+        <div class="disclaimer">
+            Please respect copyright laws and the creator's rights when downloading content.
+        </div>
+    </div>
+
+    <script>
+        let selectedQuality = '1080p';
+
+        // Quality selection
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedQuality = btn.dataset.quality;
+            });
+        });
+
+        // Form submission
+        document.getElementById('downloadForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('videoUrl').value;
+            const format = document.getElementById('format').value;
+            const statusMsg = document.getElementById('statusMessage');
+
+            // Validate URL
+            if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+                showStatus('Please enter a valid YouTube URL', 'error');
+                return;
+            }
+
+            // Show loading state
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.classList.add('loading');
+            btn.textContent = 'Processing...';
+
+            showStatus(`Preparing download: ${selectedQuality} ${format.toUpperCase()}`, 'info');
+
+            // Simulate processing (in real app, this would call backend)
+            setTimeout(() => {
+                showStatus(`✓ Video ready! Download started.`, 'success');
+                btn.classList.remove('loading');
+                btn.textContent = 'Download Video';
+                
+                // In a real implementation, you would trigger the actual download here
+                // Example: window.location.href = '/download?url=' + encodeURIComponent(url) + '&quality=' + selectedQuality;
+            }, 2000);
+        });
+
+        function showStatus(message, type) {
+            const statusMsg = document.getElementById('statusMessage');
+            statusMsg.textContent = message;
+            statusMsg.className = 'status-message ' + type;
+        }
+    </script>
+</body>
+</html>
